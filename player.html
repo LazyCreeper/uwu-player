@@ -165,7 +165,7 @@
       <div style=" overflow-y: auto;padding: 20px; width: 70%;">
         <ul style="margin-left: 30px;">
           <li v-for="song in songList" :key="song.fullName" style="margin:8px 0;list-style:decimal-leading-zero"
-            :class="{'cur-p-highlight': `${curPlay.artist} - ${curPlay.name}` === `${song.artist} - ${song.name}`}">
+            :class="{'cur-p-highlight': curPlay.fullName === song.fullName}">
             <div style="display: flex;justify-content: space-between;align-items: center;">
               <span>{{ song.artist }} - {{ song.name }}</span>
               <div style="display: flex;justify-content: space-between;align-items: center;">
@@ -174,8 +174,10 @@
                   song.type
                   }}</tag>
 
-                <button :disabled="`${curPlay.artist} - ${curPlay.name}` === `${song.artist} - ${song.name}`"
-                  class="btn" style="margin-left: 10px;" @click="playSong(song)">播放 ▶️</button>
+                <button title="分享链接" style="margin-left: 10px;" @click="copyLink(song)">🔗</button>
+
+                <button :disabled="curPlay.fullName === song.fullName" class="btn" style="margin-left: 10px;"
+                  @click="playSong(song)">播放 ▶️</button>
               </div>
             </div>
           </li>
@@ -192,7 +194,7 @@
         text-align: center;
             margin: 10px;
                 width: 30%;">
-        <div v-if="curPlay.name" class="cur-s-name" :title="`${curPlay.artist} - ${curPlay.name}`">
+        <div v-if="curPlay.name" class="cur-s-name" :title="curPlay.fullName">
           <p>{{curPlay.name }}</p>
           <small>{{curPlay.artist}}</small>
         </div>
@@ -222,7 +224,6 @@
     const app = Vue.createApp({
       data() {
         return {
-          playlist: [],
           songList: [],
           curPlay: {
             name: '',
@@ -232,6 +233,10 @@
           currentLyricIndex: -1,
           isRandom: false,
           autoNext: true,
+
+          share: {
+            fullName: ""
+          }
         };
       },
       methods: {
@@ -306,7 +311,6 @@
             }
           });
 
-
           return lyrics;
         },
 
@@ -324,9 +328,27 @@
           const randomSong = this.songList[randomIndex];
           this.playSong(randomSong);
         },
+
+        copyLink(song) {
+          const songLink = `${window.location.origin}${window.location.pathname}?s=${encodeURIComponent(song.fullName)}`;
+          navigator.clipboard.writeText(songLink).then(() => {
+            alert('分享链接已复制到剪切板');
+          }).catch(err => {
+            alert('复制失败:', err);
+          });
+        },
+
+        checkShare() {
+          const s = location.search.split('?s=')[1]
+          if (!s) return;
+          if (!this.songList.length) return;
+          const i = this.songList.findIndex(i => encodeURIComponent(i.fullName) === (s))
+          if (i) return this.playSong(this.songList[i])
+        }
       },
-      mounted() {
-        this.fetchSongList();
+      async mounted() {
+        await this.fetchSongList();
+        this.checkShare();
       }
     });
 
