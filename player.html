@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Uwu Player</title>
+  <link
+    href="https://font.sec.miui.com/font/css?family=MiSans:100,200,300,400,500,600,700,800,900:Chinese_Simplify,Chinese_Traditional&amp;display=swap"
+    rel="stylesheet" as="style">
+  <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.31/vue.global.prod.min.js"
+    type="application/javascript"></script>
+  <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/axios/0.26.0/axios.min.js"
+    type="application/javascript"></script>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      font-family: PingFang SC, MiSans, MIUI, Helvetica, Helvetica Neue, Arial, Microsoft Yahei, Hiragino Sans GB, Heiti SC, WenQuanYi Micro Hei, sans-serif;
+    }
+
+    *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      box-shadow: inset 0 0 5px #45454515;
+      background: rgba(255, 255, 255, 0.548);
+    }
+
+    *::-webkit-scrollbar-track {
+      box-shadow: inset 0 0 5px #3131310a;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .3);
+    }
+
+    .abg {
+      background-image: linear-gradient(135deg, rgb(48 48 48), rgb(8 8 8 / 50%) 100%), url(https://api.imlazy.ink/img);
+      /* background-image: linear-gradient(135deg, rgb(48 48 48), rgb(8 8 8 / 50%) 100%), url(https://s1.imlazy.ink:233/img/background/114546200_p0.png); */
+      background-size: cover;
+      background-repeat: no-repeat;
+      min-width: 100%;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    @media(prefers-color-scheme: dark) {}
+
+    body {
+      color: #fff
+    }
+
+    tag {
+      font-family: monospace;
+      background-color: rgb(3, 162, 236);
+      color: aliceblue;
+      padding: 4px 8px;
+    }
+
+    .tag-suc {
+      background-color: #35c549;
+    }
+
+    .tag-gray {
+      background-color: rgb(141, 141, 141);
+      color: antiquewhite;
+    }
+
+    .btn {
+      background: #cb7676;
+      padding: 6px 16px;
+      cursor: pointer;
+      border: 0;
+      color: #fffdfa;
+    }
+
+    .btn-next {
+      background: #35ac5d;
+    }
+
+    .btn-warn {
+      background: #d29230;
+    }
+
+    .btn[disabled] {
+      cursor: not-allowed;
+      filter: contrast(0.5);
+    }
+
+    .lrc {
+      filter: brightness(0.7);
+      transition: all 0.5s;
+    }
+
+    .lrc-highlight {
+      color: transparent;
+      background: linear-gradient(to bottom, #00beff, #24ffba);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -moz-background-clip: text;
+      text-shadow: 0px 0px 10px #3d3d3da8;
+      font-size: 1.5rem;
+      filter: unset;
+      font-weight: 500;
+    }
+
+    .cur-s-name {
+      font-size: 1.5rem;
+      color: transparent;
+      background: linear-gradient(45deg, #3cbdff, #ffd527);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -moz-background-clip: text;
+      text-shadow: 0px 0px 10px #3d3d3da8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cur-s-name small {
+      font-size: 16px;
+      background: linear-gradient(45deg, #ffc310, #ff5815);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -moz-background-clip: text;
+    }
+
+    .cur-p-highlight {
+      background: rgba(255, 255, 255, .3);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="abg"></div>
+  <div id="app">
+    <div style=" display: flex;justify-content: space-between;align-items: center;padding: 10px 30px 10px;">
+      <h1 style="font-weight: 100">UwU Player</h1>
+
+      <div style="display: flex;justify-content: space-between;align-items: center;">
+        <span>当前一共 {{ songList.length }} 首歌曲</span>
+
+        <div style="margin-left: 15px;">
+          <label>
+            <input type="checkbox" v-model="isRandom"> 随机播放
+          </label>
+          <label>
+            <input type="checkbox" v-model="autoNext"> 自动下一首
+          </label>
+
+          <button v-if="curPlay.name" class="btn btn-warn" style="margin-left: 10px;" @click="stopSong">停止 🛑</button>
+          <button class="btn btn-next" style="margin-left: 10px;" @click="nextSong">下一首 →</button>
+        </div>
+      </div>
+    </div>
+
+    <audio ref="audioPlayer" controls style="width: 100%; position: fixed; bottom: 0;" autoplay
+      @ended="nextSong"></audio>
+
+
+    <div style="display: flex;height: calc(100svh - 125px)">
+      <div style=" overflow-y: auto;padding: 20px; width: 70%;">
+        <ul style="margin-left: 30px;">
+          <li v-for="song in songList" :key="song.fullName" style="margin:8px 0;list-style:decimal-leading-zero"
+            :class="{'cur-p-highlight': `${curPlay.artist} - ${curPlay.name}` === `${song.artist} - ${song.name}`}">
+            <div style="display: flex;justify-content: space-between;align-items: center;">
+              <span>{{ song.artist }} - {{ song.name }}</span>
+              <div style="display: flex;justify-content: space-between;align-items: center;">
+
+                <tag :class="{'tag-gray' : song.type === 'mp3'}">{{
+                  song.type
+                  }}</tag>
+
+                <button :disabled="`${curPlay.artist} - ${curPlay.name}` === `${song.artist} - ${song.name}`"
+                  class="btn" style="margin-left: 10px;" @click="playSong(song)">播放 ▶️</button>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <!-- 
+       background: #4141418c;
+        box-shadow: 0 0 10px #43434375;
+        backdrop-filter: blur(5px);
+       -->
+      <div style="
+        padding: 8px 15px;
+        border-radius: 6px;
+        text-align: center;
+            margin: 10px;
+                width: 30%;">
+        <div v-if="curPlay.name" class="cur-s-name" :title="`${curPlay.artist} - ${curPlay.name}`">
+          <p>{{curPlay.name }}</p>
+          <small>{{curPlay.artist}}</small>
+        </div>
+        <p v-else>暂无歌曲播放</p>
+
+        <div v-if="currentLyrics.length" style="font-size: 16px;overflow: auto;scrollbar-width: none;
+        height: 90%;
+    margin-top: 10px;
+    box-shadow: 0 0 10px #d2c0ff inset, 0 0 10px #cabdff;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);">
+          <div v-for="(lyric, index) in currentLyrics" :key="index"
+            :class="currentLyricIndex === index ?'lrc-highlight': 'lrc'"
+            style="line-height: 1.5; max-height: 3em; overflow: hidden;">
+            {{ lyric.text }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    const TITLE = 'Uwu Player';
+    const app = Vue.createApp({
+      data() {
+        return {
+          playlist: [],
+          songList: [],
+          curPlay: {
+            name: '',
+            artist: ''
+          },
+          currentLyrics: [],
+          currentLyricIndex: -1,
+          isRandom: false,
+          autoNext: true,
+        };
+      },
+      methods: {
+        async playSong(song) {
+          this.currentLyrics = []
+          this.$refs.audioPlayer.src = `/mp3/${encodeURIComponent(`${song.fullName}.${song.type}`)}`;
+          this.curPlay = song;
+
+          document.title = song.fullName
+
+          try {
+            const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`)
+
+            this.currentLyrics = this.parseLrc(lrc);
+            this.currentLyricIndex = 0; // 重置当前歌词索引
+            this.updateCurrentLyric(); // 更新当前歌词
+          } catch (err) {
+            console.error('歌词加载错误：', err);
+          }
+        },
+
+        stopSong() {
+          this.$refs.audioPlayer.src = ''
+          this.curPlay = {
+            name: '',
+            artist: ''
+          }
+          this.currentLyrics = []
+
+          document.title = TITLE
+        },
+
+        updateCurrentLyric() {
+          const audio = this.$refs.audioPlayer;
+          audio.ontimeupdate = () => {
+            const currentTime = audio.currentTime;
+            this.currentLyricIndex = this.currentLyrics.findIndex(lyric => lyric.time > currentTime) - 1;
+
+            // 自动滚动到高亮歌词
+            const highlightedLyric = document.querySelector('.lrc-highlight');
+            if (highlightedLyric) {
+              highlightedLyric.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          };
+        },
+
+        async fetchSongList() {
+          try {
+            const { data: songList } = await axios.get('/mp3/songList.json', {
+              params: {
+                _t: Date.now()
+              }
+            });
+            this.songList = songList;
+          } catch (error) {
+            console.log(error);
+          }
+        },
+
+        parseLrc(lrcContent) {
+          const lines = lrcContent.split('\n');
+          const lyrics = [];
+          lines.forEach(line => {
+            const match = line.match(/\[(\d{2}):(\d{2}\.\d{1,9})\](.*)/);
+
+            if (match) {
+              const minutes = parseInt(match[1], 10);
+              const seconds = parseFloat(match[2]);
+              const time = minutes * 60 + seconds; // 转换为秒
+              const text = match[3].trim();
+              lyrics.push({ time, text });
+            }
+          });
+
+
+          return lyrics;
+        },
+
+        nextSong() {
+          this.currentLyrics = []
+          if (this.isRandom) return this.playRandomSong()
+          if (!this.autoNext) return;
+          const nextIndex = this.songList.findIndex((i) => i.name === this.curPlay.name);
+          const nextSong = this.songList[nextIndex + 1];
+          this.playSong(nextSong);
+        },
+
+        playRandomSong() {
+          const randomIndex = Math.floor(Math.random() * this.songList.length);
+          const randomSong = this.songList[randomIndex];
+          this.playSong(randomSong);
+        },
+      },
+      mounted() {
+        this.fetchSongList();
+      }
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+
+</html>
