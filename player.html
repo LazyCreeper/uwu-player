@@ -69,6 +69,13 @@
       color: antiquewhite;
     }
 
+    .flex-center {
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+
     .btn {
       background: #cb7676;
       padding: 6px 16px;
@@ -137,12 +144,11 @@
 <body>
   <div class="abg"></div>
   <div id="app">
-    <div style=" display: flex;justify-content: space-between;align-items: center;padding: 10px 30px 10px;">
+    <div class="flex-center" style="padding: 10px 30px 10px;">
       <h1 style="font-weight: 100">UwU Player</h1>
 
-      <div style="display: flex;justify-content: space-between;align-items: center;">
+      <div class="flex-center">
         <span>当前一共 {{ songList.length }} 首歌曲</span>
-
         <div style="margin-left: 15px;">
           <label>
             <input type="checkbox" v-model="isRandom"> 随机播放
@@ -152,7 +158,7 @@
           </label>
 
           <button v-if="curPlay.name" class="btn btn-warn" style="margin-left: 10px;" @click="stopSong">停止 🛑</button>
-          <button class="btn btn-next" style="margin-left: 10px;" @click="nextSong">下一首 →</button>
+          <button class="btn btn-next" style="margin-left: 10px;" @click="nextSong(true)">下一首 →</button>
         </div>
       </div>
     </div>
@@ -160,15 +166,14 @@
     <audio ref="audioPlayer" controls style="width: 100%; position: fixed; bottom: 0;" autoplay
       @ended="nextSong"></audio>
 
-
     <div style="display: flex;height: calc(100svh - 125px)">
       <div style=" overflow-y: auto;padding: 20px; width: 70%;">
         <ul style="margin-left: 30px;">
           <li v-for="song in songList" :key="song.fullName" style="margin:8px 0;list-style:decimal-leading-zero"
             :class="{'cur-p-highlight': curPlay.fullName === song.fullName}">
-            <div style="display: flex;justify-content: space-between;align-items: center;">
+            <div class="flex-center">
               <span>{{ song.artist }} - {{ song.name }}</span>
-              <div style="display: flex;justify-content: space-between;align-items: center;">
+              <div class="flex-center">
 
                 <tag :class="{'tag-gray' : song.type === 'mp3'}">{{
                   song.type
@@ -233,19 +238,35 @@
           currentLyricIndex: -1,
           isRandom: false,
           autoNext: true,
-
-          share: {
-            fullName: ""
-          }
         };
+      },
+      watch: {
+        isRandom: {
+          handler(value) {
+            localStorage.setItem('isRandom', value)
+          },
+        },
+        autoNext: {
+          handler(value) {
+            localStorage.setItem('autoNext', value)
+          },
+        }
       },
       methods: {
         async playSong(song) {
+
           this.currentLyrics = []
           this.$refs.audioPlayer.src = `/mp3/${encodeURIComponent(`${song.fullName}.${song.type}`)}`;
           this.curPlay = song;
 
           document.title = song.fullName
+
+          this.$nextTick(() => {
+            const curPlayEle = document.querySelector('.cur-p-highlight');
+            if (curPlayEle) {
+              curPlayEle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          })
 
           try {
             const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`)
@@ -314,10 +335,11 @@
           return lyrics;
         },
 
-        nextSong() {
-          this.currentLyrics = []
+        nextSong(force = false) {
           if (this.isRandom) return this.playRandomSong()
-          if (!this.autoNext) return;
+          if (typeof force !== 'boolean') force = false
+          if (!this.autoNext && !force) return;
+          this.currentLyrics = []
           const nextIndex = this.songList.findIndex((i) => i.name === this.curPlay.name);
           const nextSong = this.songList[nextIndex + 1];
           this.playSong(nextSong);
@@ -349,8 +371,12 @@
       async mounted() {
         await this.fetchSongList();
         this.checkShare();
+        this.isRandom = localStorage.getItem('isRandom') === 'true'
+        this.autoNext = localStorage.getItem('autoNext') ?? true
       }
     });
+
+
 
     app.mount('#app');
   </script>
