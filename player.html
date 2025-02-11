@@ -171,7 +171,7 @@
         <ul style="margin-left: 30px;">
           <li v-for="song in songList" :key="song.fullName" style="margin:8px 0;list-style:decimal-leading-zero"
             :class="{'cur-p-highlight': curPlay.fullName === song.fullName}">
-            <div class="flex-center">
+            <div class="flex-center" style="min-width: max-content">
               <span>{{ song.artist }} - {{ song.name }}</span>
               <div class="flex-center">
 
