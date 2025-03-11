@@ -102,6 +102,10 @@
       transition: all 0.5s;
     }
 
+    .lrc:last-child {
+      padding-bottom: 50svh;
+    }
+
     .lrc-highlight {
       color: transparent;
       background: linear-gradient(to bottom, #00beff, #24ffba);
@@ -112,6 +116,7 @@
       font-size: 1.5rem;
       filter: unset;
       font-weight: 500;
+      padding: 0.5rem 0;
     }
 
     .cur-s-name {
@@ -171,9 +176,9 @@
         <ul style="margin-left: 30px;">
           <li v-for="song in songList" :key="song.fullName" style="margin:8px 0;list-style:decimal-leading-zero"
             :class="{'cur-p-highlight': curPlay.fullName === song.fullName}">
-            <div class="flex-center" style="min-width: max-content">
+            <div class="flex-center">
               <span>{{ song.artist }} - {{ song.name }}</span>
-              <div class="flex-center">
+              <div class="flex-center" style="min-width: max-content">
 
                 <tag :class="{'tag-gray' : song.type === 'mp3'}">{{
                   song.type
@@ -375,8 +380,6 @@
         this.autoNext = localStorage.getItem('autoNext') ?? true
       }
     });
-
-
 
     app.mount('#app');
   </script>
