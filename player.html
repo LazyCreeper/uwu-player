@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="referer" content="no-referrer">
   <title>Uwu Player</title>
   <link
     href="https://font.sec.miui.com/font/css?family=MiSans:100,200,300,400,500,600,700,800,900:Chinese_Simplify,Chinese_Traditional&amp;display=swap"
@@ -12,6 +13,11 @@
   <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/axios/0.26.0/axios.min.js"
     type="application/javascript"></script>
   <style>
+    :root {
+      --bg: url('https://api.imlazy.ink/img');
+      /* --bg: url('https://s1.imlazy.ink:233/img/background/104923272_p0.jpg'); */
+    }
+
     * {
       padding: 0;
       margin: 0;
@@ -36,10 +42,12 @@
     }
 
     .abg {
-      background-image: linear-gradient(135deg, rgb(48 48 48), rgb(8 8 8 / 50%) 100%), url(https://api.imlazy.ink/img);
+      background-image: linear-gradient(135deg, rgb(48 48 48), rgb(8 8 8 / 50%) 100%), var(--bg);
       /* background-image: linear-gradient(135deg, rgb(48 48 48), rgb(8 8 8 / 50%) 100%), url(https://s1.imlazy.ink:233/img/background/114546200_p0.png); */
       background-size: cover;
       background-repeat: no-repeat;
+      background-position: center;
+      filter: var(--bg-filter, 'blur(0px)');
       min-width: 100%;
       position: fixed;
       width: 100%;
@@ -50,7 +58,8 @@
     @media(prefers-color-scheme: dark) {}
 
     body {
-      color: #fff
+      color: #fff;
+      background: #000000;
     }
 
     tag {
@@ -205,13 +214,15 @@
             margin: 10px;
                 width: 30%;">
         <div v-if="curPlay.name" class="cur-s-name" :title="curPlay.fullName">
+          <img :src="pic" :alt="curPlay.name" width="130">
+
           <p>{{curPlay.name }}</p>
           <small>{{curPlay.artist}}</small>
         </div>
         <p v-else>暂无歌曲播放</p>
 
         <div v-if="currentLyrics.length" style="font-size: 16px;overflow: auto;scrollbar-width: none;
-        height: 90%;
+        height: 70%;
     margin-top: 10px;
     box-shadow: 0 0 10px #d2c0ff inset, 0 0 10px #cabdff;
     border-radius: 4px;
@@ -231,6 +242,8 @@
 
   <script>
     const TITLE = 'Uwu Player';
+    const BG = 'https://api.imlazy.ink/img';
+    const QM_URL = 'https://s1.imlazy.ink:233/qm/soso/fcgi-bin/client_search_cp';
     const app = Vue.createApp({
       data() {
         return {
@@ -239,6 +252,7 @@
             name: '',
             artist: ''
           },
+          pic: 'https://imge.kugou.com/stdmusic/',
           currentLyrics: [],
           currentLyricIndex: -1,
           isRandom: false,
@@ -273,6 +287,8 @@
             }
           })
 
+          this.getMusicPic()
+
           try {
             const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`)
 
@@ -291,7 +307,7 @@
             artist: ''
           }
           this.currentLyrics = []
-
+          this.resetBg()
           document.title = TITLE
         },
 
@@ -300,6 +316,9 @@
           audio.ontimeupdate = () => {
             const currentTime = audio.currentTime;
             this.currentLyricIndex = this.currentLyrics.findIndex(lyric => lyric.time > currentTime) - 1;
+
+            // 双语歌词
+            // if(this.currentLyrics[this.currentLyricIndex].time ===this.currentLyrics[this.currentLyricIndex -1].time) this.currentLyricIndex--
 
             // 自动滚动到高亮歌词
             const highlightedLyric = document.querySelector('.lrc-highlight');
@@ -318,7 +337,7 @@
             });
             this.songList = songList;
           } catch (error) {
-            console.log(error);
+            console.error(error);
           }
         },
 
@@ -371,6 +390,49 @@
           if (!this.songList.length) return;
           const i = this.songList.findIndex(i => encodeURIComponent(i.fullName) === (s))
           if (i) return this.playSong(this.songList[i])
+        },
+
+        async getMusicPic() {
+          try {
+            const { data: d } = await axios.get(QM_URL, {
+              params: {
+                _t: Date.now(),
+                p: 1,
+                n: 50,
+                format: 'json',
+                w: this.curPlay.name
+              }
+            });
+            const data = d.data;
+
+            const l = data.song.list
+            let bg = 'https://api.imlazy.ink/img/';
+            if (l.length) {
+
+              const a = l.find(s => {
+                const b = s.singer.filter(n => (n.name.includes(this.curPlay.artist) || this.curPlay.artist.includes(n.name)))
+                if (!b.length) return false
+                else return b[0].name.includes(this.curPlay.artist) || this.curPlay.artist.includes(b[0].name)
+              })
+
+              if (!a || !a.albummid) return this.resetBg()
+
+              bg = this.pic = `http://y.gtimg.cn/music/photo_new/T002R300x300M000${a.albummid}_1.jpg`;
+
+              document.documentElement.style.setProperty('--bg', `url(${bg})`);
+              document.documentElement.style.setProperty('--bg-filter', 'blur(20px)');
+            } else {
+              this.resetBg()
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        },
+
+        resetBg() {
+          this.pic = 'https://imge.kugou.com/stdmusic/'
+          document.documentElement.style.setProperty('--bg', `url(${BG})`);
+          document.documentElement.style.removeProperty('--bg-filter');
         }
       },
       async mounted() {
