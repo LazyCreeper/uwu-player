@@ -279,37 +279,6 @@
 
           document.title = song.fullName;
 
-          // 更新通知栏图标
-          this.updateNotificationIcon(song);
-
-          // 添加MediaSession支持
-          if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title: song.name,
-              artist: song.artist,
-              album: TITLE,
-              artwork: [
-                { src: this.pic.includes('kugou') ? BG : this.pic, sizes: '300x300', type: 'image/jpeg' }
-              ]
-            });
-
-            navigator.mediaSession.setActionHandler('play', () => {
-              this.$refs.audioPlayer.play();
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-              this.$refs.audioPlayer.pause();
-            });
-
-            // navigator.mediaSession.setActionHandler('previoustrack', () => {
-            //   // TODO: 上一首
-            // });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-              this.nextSong(true);
-            });
-          }
-
           this.$nextTick(() => {
             const curPlayEle = document.querySelector('.cur-p-highlight');
             if (curPlayEle) {
@@ -317,13 +286,14 @@
             }
           });
 
-          this.getMusicPic();
+          this.getMusicPic().then(() => this.updateNotificationIcon(song))
 
           try {
             const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`);
             this.currentLyrics = this.parseLrc(lrc);
             this.currentLyricIndex = 0; // 重置当前歌词索引
             this.updateCurrentLyric(); // 更新当前歌词
+
           } catch (err) {
             console.error('歌词加载错误：', err);
           }
@@ -487,6 +457,39 @@
         this.checkShare();
         this.isRandom = localStorage.getItem('isRandom') === 'true'
         this.autoNext = localStorage.getItem('autoNext') ?? true
+
+        if ('mediaSession' in navigator) {
+          console.log('start init');
+
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: TITLE,
+            artist: window.location.hostname,
+            album: TITLE,
+            artwork: [
+              { src: BG, type: 'image/jpeg' }
+            ]
+          });
+
+          console.log('init!');
+
+
+          navigator.mediaSession.setActionHandler('play', () => {
+            this.$refs.audioPlayer.play();
+          });
+
+          navigator.mediaSession.setActionHandler('pause', () => {
+            this.$refs.audioPlayer.pause();
+          });
+
+          // navigator.mediaSession.setActionHandler('previoustrack', () => {
+          //   // TODO: 上一首
+          // });
+
+          navigator.mediaSession.setActionHandler('nexttrack', () => {
+            this.nextSong(true);
+          });
+        }
+
       }
     });
 
