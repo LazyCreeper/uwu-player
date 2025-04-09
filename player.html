@@ -459,8 +459,6 @@
         this.autoNext = localStorage.getItem('autoNext') ?? true
 
         if ('mediaSession' in navigator) {
-          console.log('start init');
-
           navigator.mediaSession.metadata = new MediaMetadata({
             title: TITLE,
             artist: window.location.hostname,
@@ -469,9 +467,6 @@
               { src: BG, type: 'image/jpeg' }
             ]
           });
-
-          console.log('init!');
-
 
           navigator.mediaSession.setActionHandler('play', () => {
             this.$refs.audioPlayer.play();
