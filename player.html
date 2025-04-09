@@ -273,30 +273,73 @@
       },
       methods: {
         async playSong(song) {
-
           this.currentLyrics = []
           this.$refs.audioPlayer.src = `/mp3/${encodeURIComponent(`${song.fullName}.${song.type}`)}`;
           this.curPlay = song;
 
-          document.title = song.fullName
+          document.title = song.fullName;
+
+          // 更新通知栏图标
+          this.updateNotificationIcon(song);
+
+          // 添加MediaSession支持
+          if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: song.name,
+              artist: song.artist,
+              album: TITLE,
+              artwork: [
+                { src: this.pic.includes('kugou') ? BG : this.pic, sizes: '300x300', type: 'image/jpeg' }
+              ]
+            });
+
+            navigator.mediaSession.setActionHandler('play', () => {
+              this.$refs.audioPlayer.play();
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+              this.$refs.audioPlayer.pause();
+            });
+
+            // navigator.mediaSession.setActionHandler('previoustrack', () => {
+            //   // TODO: 上一首
+            // });
+
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+              this.nextSong(true);
+            });
+          }
 
           this.$nextTick(() => {
             const curPlayEle = document.querySelector('.cur-p-highlight');
             if (curPlayEle) {
               curPlayEle.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-          })
+          });
 
-          this.getMusicPic()
+          this.getMusicPic();
 
           try {
-            const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`)
-
+            const { data: lrc } = await axios.get(`/mp3/${encodeURIComponent(song.fullName)}.lrc`);
             this.currentLyrics = this.parseLrc(lrc);
             this.currentLyricIndex = 0; // 重置当前歌词索引
             this.updateCurrentLyric(); // 更新当前歌词
           } catch (err) {
             console.error('歌词加载错误：', err);
+          }
+        },
+
+        updateNotificationIcon(song) {
+          // 更新通知栏图标
+          if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: song.name,
+              artist: song.artist,
+              album: TITLE,
+              artwork: [
+                { src: this.pic.includes('kugou') ? BG : this.pic, sizes: '300x300', type: 'image/jpeg' }
+              ]
+            });
           }
         },
 
@@ -309,6 +352,10 @@
           this.currentLyrics = []
           this.resetBg()
           document.title = TITLE
+          this.updateNotificationIcon({
+            artist: '未播放',
+            icon: BG
+          })
         },
 
         updateCurrentLyric() {
