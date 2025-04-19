@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referer" content="no-referrer">
-  <title>Uwu Player</title>
+  <title>UwU Player</title>
   <link
     href="https://font.sec.miui.com/font/css?family=MiSans:100,200,300,400,500,600,700,800,900:Chinese_Simplify,Chinese_Traditional&amp;display=swap"
     rel="stylesheet" as="style">
@@ -31,9 +31,9 @@
           <label>
             <input type="checkbox" v-model="autoNext"> 自动下一首
           </label>
-
-          <button v-if="curPlay.name" class="btn btn-warn" style="margin-left: 10px;" @click="stopSong">停止 🛑</button>
-          <button class="btn btn-next" style="margin-left: 10px;" @click="nextSong(true)">下一首 →</button>
+          <button class="btn btn-blue ml-10" @click="toggleImmersiveMode">沉浸模式 🏞️</button>
+          <button v-if="curPlay.name" class="btn btn-warn ml-10" @click="stopSong">停止 🛑</button>
+          <button class="btn btn-next ml-10" @click="nextSong(true)">下一首 →</button>
         </div>
       </div>
     </header>
@@ -46,11 +46,9 @@
             <div class="flex-center">
               <span>{{ song.artist }} - {{ song.name }}</span>
               <div class="flex-center" style="min-width: max-content">
-
                 <tag :class="{'tag-gray' : song.type === 'mp3'}">{{
                   song.type
                   }}</tag>
-
                 <button title="分享链接" class="mx-10" @click="copyLink(song)">🔗</button>
 
                 <button :disabled="curPlay.fullName === song.fullName" class="btn" @click="playSong(song)">播放
@@ -79,13 +77,79 @@
     </main>
 
     <audio ref="audioPlayer" controls autoplay @ended="nextSong"></audio>
-  </div>
 
+    <Immersive v-if="immersiveMode">
+      <button class="btn exit-btn" @click="toggleImmersiveMode">退出</button>
+      <div class="left">
+        <img :src="pic" :title="curPlay.name">
+      </div>
+      <div class="right">
+        <p class="title">{{curPlay.fullName}}</p>
+        <div v-if="currentLyrics.length" class="lyrics">
+          <div v-for="(lyric, index) in currentLyrics" :key="index" class="lrc"
+            :class="currentLyricIndex === index ?'lrc-highlight': ''">
+            {{ lyric.text }}
+          </div>
+        </div>
+        <div class="player-controls">
+          <!-- 进度条容器 -->
+          <div class="progress-container" @click="seekTo($event)">
+            <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+            <div class="progress-time">
+              <span>{{ formatTime(currentTime) }}</span>
+              <span>{{ formatTime(duration) }}</span>
+            </div>
+          </div>
+
+          <!-- 控制按钮 -->
+          <div class="control-buttons">
+            <button class="control-btn" @click="prevSong" title="上一首">
+              <svg t="1745073545487" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                xmlns="http://www.w3.org/2000/svg" p-id="2624" width="64" height="64">
+                <path
+                  d="M256 224a32 32 0 0 1 32 32v512a32 32 0 0 1-64 0V256a32 32 0 0 1 32-32z m385.952 30.624a96 96 0 0 1 157.44 73.76v366.72a96 96 0 0 1-157.44 73.76l-220.032-183.36a96 96 0 0 1 0-147.52z m86.048 53.28a32 32 0 0 0-45.056-4.096l-220.032 183.36a32 32 0 0 0-4.096 4.096l-2.4 3.232a32 32 0 0 0 6.496 41.824l220.032 183.36a32 32 0 0 0 52.48-24.576v-366.72a32 32 0 0 0-7.424-20.48z"
+                  p-id="2625"></path>
+              </svg>
+            </button>
+            <button class="control-btn" @click="togglePlay" title="播放/暂停">
+              <svg v-if="isPlaying" t="1745073946724" class="icon" viewBox="0 0 1140 1024" version="1.1"
+                xmlns="http://www.w3.org/2000/svg" p-id="11201" width="64" height="64">
+                <path
+                  d="M562.58760565 42.66666666C310.76547065 42.66666666 106.66666665 247.95993666 106.66666665 501.26409366S310.76547065 959.86152166 562.58760565 959.86152166s455.909879-205.30433 455.90988-458.597428S814.39868065 42.66666666 562.58760565 42.66666666z m277.005455 737.228682a389.65021 389.65021 0 0 1-124.578354 84.464212 391.032694 391.032694 0 0 1-304.865262 0.110599 395.146964 395.146964 0 0 1-124.688952-641.848381 392.957111 392.957111 0 0 1 554.165747 557.27357zM424.54939365 329.28314666a31.940899 31.940899 0 0 0-22.68379 9.445127 32.294815 32.294815 0 0 0-9.378768 22.816508v279.438625a32.073617 32.073617 0 1 0 64.147235 0V361.54478166a32.305874 32.305874 0 0 0-9.389828-22.816508 31.907719 31.907719 0 0 0-22.68379-9.445127z m276.065365 0a31.940899 31.940899 0 0 0-22.683789 9.445127 32.350114 32.350114 0 0 0-9.389828 22.816508v279.438625a32.073617 32.073617 0 1 0 64.147234 0V361.54478166a32.294815 32.294815 0 0 0-9.378768-22.816508 31.940899 31.940899 0 0 0-22.683789-9.445127z m0 0"
+                  p-id="11202"></path>
+              </svg>
+              <svg v-else t="1745073837660" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                xmlns="http://www.w3.org/2000/svg" p-id="8456" width="50" height="50">
+                <path
+                  d="M500.864 83.392c239.68 0 434.656 194.976 434.656 434.624 0 239.648-195.008 434.656-434.656 434.656S66.24 757.664 66.24 518.016 261.216 83.392 500.864 83.392m0 933.28c274.944 0 498.656-223.712 498.656-498.656S775.84 19.392 500.864 19.392C225.92 19.392 2.24 243.072 2.24 518.016S225.92 1016.672 500.864 1016.672"
+                  p-id="8457"></path>
+                <path
+                  d="M436.864 412.512l189.024 105.504-189.024 105.504v-211.008z m-32 297.504a31.04 31.04 0 0 0 15.36-4.48l0.224 0.416 286.72-160-0.256-0.416a31.584 31.584 0 0 0 16.64-27.52 31.552 31.552 0 0 0-16.64-27.52l0.224-0.416-286.688-160-0.224 0.416a30.72 30.72 0 0 0-15.36-4.48 32 32 0 0 0-32 32v320a32 32 0 0 0 32 32z"
+                  p-id="8458"></path>
+              </svg>
+            </button>
+            <button class="control-btn" @click="nextSong(true)" title="下一首">
+              <svg t="1745073666472" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                xmlns="http://www.w3.org/2000/svg" p-id="1675" width="64" height="64">
+                <path
+                  d="M768 224a32 32 0 0 1 32 32v512a32 32 0 0 1-64 0V256a32 32 0 0 1 32-32z m-386.336 31.36l220.032 183.36a96 96 0 0 1 0 147.52l-220.032 183.36a96 96 0 0 1-157.44-73.76v-366.72a96 96 0 0 1 157.44-73.76zM295.616 308.64a32 32 0 0 0-7.424 20.48v366.72a32 32 0 0 0 52.48 24.576l220.032-183.36a32 32 0 0 0 6.496-41.824l-2.4-3.264a32 32 0 0 0-4.096-4.096l-220.032-183.36a32 32 0 0 0-45.056 4.128z"
+                  p-id="1676"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Immersive>
+  </div>
   <script>
-    const TITLE = 'Uwu Player';
+    const TITLE = 'UwU Player';
     const BG = 'https://api.imlazy.ink/img';
     const QM_URL = 'https://s1.imlazy.ink:233/qm/soso/fcgi-bin/client_search_cp';
+
     const app = Vue.createApp({
+      components: {
+        // testT
+      },
       data() {
         return {
           songList: [],
@@ -98,6 +162,11 @@
           currentLyricIndex: -1,
           isRandom: false,
           autoNext: true,
+          immersiveMode: true,
+          currentTime: 0,
+          duration: 0,
+          progress: 0,
+          isPlaying: false
         };
       },
       watch: {
@@ -154,6 +223,16 @@
           }
         },
 
+        togglePlay() {
+          if (this.$refs.audioPlayer.paused) {
+            this.$refs.audioPlayer.play();
+            this.isPlaying = true
+          } else {
+            this.$refs.audioPlayer.pause();
+            this.isPlaying = false
+          }
+        },
+
         stopSong() {
           this.$refs.audioPlayer.src = ''
           this.curPlay = {
@@ -169,6 +248,14 @@
           })
         },
 
+        seekTo(event) {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const offsetX = event.clientX - rect.left;
+          const width = rect.width;
+          const seekTime = (offsetX / width) * this.duration;
+          this.$refs.audioPlayer.currentTime = seekTime;
+        },
+
         updateCurrentLyric() {
           const audio = this.$refs.audioPlayer;
           audio.ontimeupdate = () => {
@@ -179,10 +266,10 @@
             // if(this.currentLyrics[this.currentLyricIndex].time ===this.currentLyrics[this.currentLyricIndex -1].time) this.currentLyricIndex--
 
             // 自动滚动到高亮歌词
-            const highlightedLyric = document.querySelector('.lrc-highlight');
-            if (highlightedLyric) {
-              highlightedLyric.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            const highlightedLyrics = document.querySelectorAll('.lrc-highlight');
+            highlightedLyrics.forEach(lyric => {
+              lyric.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
           };
         },
 
@@ -291,6 +378,16 @@
           this.pic = 'https://imge.kugou.com/stdmusic/'
           document.documentElement.style.setProperty('--bg', `url(${BG})`);
           document.documentElement.style.removeProperty('--bg-filter');
+        },
+
+        toggleImmersiveMode() {
+          this.immersiveMode = !this.immersiveMode
+        },
+
+        formatTime(time) {
+          const minutes = Math.floor(time / 60);
+          const seconds = Math.floor(time % 60);
+          return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
         }
       },
       async mounted() {
@@ -324,8 +421,22 @@
           navigator.mediaSession.setActionHandler('nexttrack', () => {
             this.nextSong(true);
           });
-        }
+        };
 
+        this.$refs.audioPlayer.addEventListener('timeupdate', () => {
+          this.currentTime = this.$refs.audioPlayer.currentTime;
+          this.duration = this.$refs.audioPlayer.duration;
+          this.progress = (this.currentTime / this.duration) * 100;
+        });
+
+        this.playSong({
+          "name": "Rubia",
+          "artist": "说说Crystal",
+          "type": "flac",
+          "fullName": "说说Crystal - Rubia"
+        }).then(() => {
+          this.$refs.audioPlayer.pause()
+        })
       }
     });
 

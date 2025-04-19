@@ -7,7 +7,11 @@
 * {
   padding: 0;
   margin: 0;
-  font-family: PingFang SC, MiSans, MIUI, Helvetica, Helvetica Neue, Arial, Microsoft Yahei, Hiragino Sans GB, Heiti SC, WenQuanYi Micro Hei, sans-serif;
+  font-family: MiSans,
+    MIUI,
+    PingFang SC,
+    sans-serif;
+  ;
 }
 
 *::-webkit-scrollbar {
@@ -124,6 +128,10 @@ tag {
   color: #fffdfa;
 }
 
+.btn-blue {
+  background: #2283c5;
+}
+
 .btn-next {
   background: #35ac5d;
 }
@@ -213,4 +221,119 @@ audio {
   width: 100%;
   position: fixed;
   bottom: 0px;
+}
+
+Immersive {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  background-color: #3cbdff;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+
+  .exit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .left {
+    img {
+      border-radius: 1rem;
+    }
+  }
+
+  .right {
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+
+    .title {
+      font-weight: 300;
+      font-size: 2rem;
+      line-height: 2rem;
+    }
+
+    .lyrics {
+      font-size: 2rem;
+      height: 40svh;
+      overflow: auto;
+      max-width: 50svw;
+      line-height: 2.5rem;
+
+      .lrc {
+        font-size: inherit;
+        line-height: inherit;
+      }
+
+      .lrc:first-child {
+        padding-top: 15svh;
+      }
+
+      .lrc-highlight {
+        color: #fff;
+        background: unset;
+        text-shadow: unset;
+        font-size: inherit;
+        line-height: inherit;
+      }
+    }
+
+    .player-controls {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #1890ff;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+
+    .progress-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 5px;
+    }
+
+    .control-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 15px;
+      gap: 20px;
+    }
+
+    .control-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 64px;
+      height: 64px;
+
+      svg {
+        fill: #ffffff90
+      }
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
 }
