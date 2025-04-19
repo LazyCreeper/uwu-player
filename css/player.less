@@ -98,6 +98,10 @@ main {
   }
 }
 
+.lyrics {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+}
+
 tag {
   font-family: monospace;
   background-color: rgb(3, 162, 236);
@@ -241,8 +245,11 @@ Immersive {
   }
 
   .left {
+    text-align: center;
+
     img {
       border-radius: 1rem;
+      width: 80%;
     }
   }
 
@@ -261,8 +268,9 @@ Immersive {
       font-size: 2rem;
       height: 40svh;
       overflow: auto;
-      max-width: 50svw;
+      width: 50svw;
       line-height: 2.5rem;
+      scrollbar-width: none;
 
       .lrc {
         font-size: inherit;
@@ -298,7 +306,7 @@ Immersive {
 
     .progress-bar {
       height: 100%;
-      background: #1890ff;
+      backdrop-filter: invert(1);
       border-radius: 2px;
       transition: width 0.1s linear;
     }
@@ -326,6 +334,7 @@ Immersive {
       transition: all 0.3s;
       width: 64px;
       height: 64px;
+      outline: none;
 
       svg {
         fill: #ffffff90

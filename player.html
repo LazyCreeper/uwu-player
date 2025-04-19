@@ -79,6 +79,7 @@
     <audio ref="audioPlayer" controls autoplay @ended="nextSong"></audio>
 
     <Immersive v-if="immersiveMode">
+      <div class="abg"></div>
       <button class="btn exit-btn" @click="toggleImmersiveMode">退出</button>
       <div class="left">
         <img :src="pic" :title="curPlay.name">
