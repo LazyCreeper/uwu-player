@@ -79,7 +79,7 @@
         <img :src="pic" :title="curPlay.name">
       </div>
       <div class="right">
-        <p class="title">{{curPlay.fullName}}</p>
+        <p class="title" @click="getBgColor" title="点击更改歌词颜色 :)">{{curPlay.fullName}}</p>
         <div v-if="currentLyrics.length" class="lyrics">
           <div v-for="(lyric, index) in currentLyrics" :key="index" class="lrc"
             :class="{'lrc-highlight':currentLyricIndex === index}">
@@ -142,13 +142,13 @@
     type="application/javascript"></script>
   <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/axios/0.26.0/axios.min.js"
     type="application/javascript"></script>
-  <!-- <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/color-thief/2.3.2/color-thief.min.js"
-    type="application/javascript"></script> -->
+  <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/color-thief/2.3.2/color-thief.min.js"
+    type="application/javascript"></script>
   <script>
     const TITLE = 'UwU Player';
 
-    const BG = 'https://api.imlazy.ink/img/';
-    // const BG = './css/120854122_p0.jpg';
+    // const BG = 'https://api.imlazy.ink/img/';
+    const BG = './css/120854122_p0.jpg';
     const QM_URL = 'https://s1.imlazy.ink:233/qm/soso/fcgi-bin/client_search_cp';
 
     const app = Vue.createApp({
@@ -344,6 +344,13 @@
         },
 
         async getMusicPic() {
+          // DEBUG
+          bg = this.pic = './css/bg.webp';
+          this.getBgColor(bg)
+          document.documentElement.style.setProperty('--bg', `url(${bg})`);
+          document.documentElement.style.setProperty('--bg-filter', 'blur(20px)');
+          document.documentElement.style.setProperty('--bg-scale', '1.4');
+          return;
           try {
             const { data: d } = await axios.get(QM_URL, {
               params: {
@@ -370,8 +377,9 @@
 
               bg = this.pic = `http://y.gtimg.cn/music/photo_new/T002R300x300M000${a.albummid}_1.jpg`;
               this.getBgColor(bg)
-              document.documentElement.style.setProperty('--bg', bg);
+              document.documentElement.style.setProperty('--bg', `url(${bg})`);
               document.documentElement.style.setProperty('--bg-filter', 'blur(20px)');
+              document.documentElement.style.setProperty('--bg-scale', '1.4');
             } else {
               this.resetBg()
             }
@@ -385,6 +393,7 @@
           this.pic = 'https://imge.kugou.com/stdmusic/'
           document.documentElement.style.setProperty('--bg', `url(${BG})`);
           document.documentElement.style.removeProperty('--bg-filter');
+          document.documentElement.style.removeProperty('--bg-scale');
           this.getBgColor(BG)
         },
 
@@ -399,16 +408,29 @@
         },
 
         getBgColor(imgLink, unset = false) {
-          return 0;
-          if (unset) return document.documentElement.style.removeProperty('--second-color');
-          const colorThief = new ColorThief();
+          if (unset) {
+            document.documentElement.style.removeProperty('--main-color');
+            document.documentElement.style.removeProperty('--second-color');
+            return
+          }
+          const getColor = (imgInstance) => {
+            const colorThief = new ColorThief();
+            const [r, g, b] = colorThief.getColor(imgInstance)
+            const secondColors = colorThief.getPalette(imgInstance, 10, 10);
+            const secondColor = secondColors[Math.floor(Math.random() * secondColors.length)];
+            const [sr, sg, sb] = secondColor;
+            // console.log(colors);
+            // console.log(`rgb(${r}, ${g}, ${b})`);
+            document.documentElement.style.setProperty('--main-color', `rgb(${r}, ${g}, ${b})`);
+            document.documentElement.style.setProperty('--second-color', `rgb(${sr}, ${sg}, ${sb})`);
+          };
+
+          if (this.imgInstance) return getColor(this.imgInstance);
           const img = new Image();
 
           img.onload = () => {
-            const [o] = colorThief.getPalette(img);
-            const [r, g, b] = o;
-            // console.log(`rgb(${r}, ${g}, ${b})`);
-            document.documentElement.style.setProperty('--second-color', `rgb(${r}, ${g}, ${b})`);
+            this.imgInstance = img
+            getColor(img)
           };
           img.crossOrigin = 'Anonymous';
           img.src = imgLink
@@ -456,10 +478,10 @@
         });
 
         this.playSong({
-          "name": "Rubia",
+          "name": "天知河",
           "artist": "说说Crystal",
           "type": "flac",
-          "fullName": "说说Crystal - Rubia"
+          "fullName": "说说Crystal - 天知河"
         }).then(() => {
           this.$refs.audioPlayer.pause()
         })
