@@ -1,6 +1,7 @@
 :root {
   /* --bg: url('https://api.imlazy.ink/img'); */
   /* --bg: url('https://s1.imlazy.ink:233/img/background/104923272_p0.jpg'); */
+  --battery-color: #b0b0b0;
 }
 
 * {
@@ -243,10 +244,38 @@ Immersive {
   justify-content: space-evenly;
   align-items: center;
 
-  .exit-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+  header {
+    position: fixed;
+    top: 0;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100svw;
+    padding: 0;
+    opacity: 0.2;
+    transition: all 0.3s;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .left,
+    .right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .left {
+      flex: 1
+    }
+
+    .right {
+      justify-content: end;
+      width: auto;
+      flex: 1;
+    }
   }
 
   .left {
@@ -351,6 +380,65 @@ Immersive {
 
     .control-btn:hover {
       background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.battery-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+
+  .charging {
+    fill: #00cb00
+  }
+
+  small {
+    font-size: 12px;
+    // color: var(--battery-color, '#b0b0b0');
+    color: #b0b0b0;
+    height: 26px;
+  }
+}
+
+.battery {
+  width: 40px;
+  height: 20px;
+  position: relative;
+  box-sizing: border-box;
+
+  .power {
+    width: 35px;
+    height: 20px;
+    position: absolute;
+    border: 2px solid #b0b0b0;
+    // border: 2px solid #b0b0b0;
+    border-radius: 5px;
+    box-sizing: border-box;
+
+    &::before {
+      content: '';
+      width: 0;
+      height: 12px;
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      border-radius: 3px;
+      z-index: 5;
+      width: var(--battery-level, '100%');
+      background: var(--battery-color, '#b0b0b0');
+      max-width: 80%;
+    }
+
+    &::after {
+      content: '';
+      width: 2px;
+      height: 9px;
+      background-color: #b0b0b0;
+      position: absolute;
+      right: -5px;
+      top: 3px;
     }
   }
 }

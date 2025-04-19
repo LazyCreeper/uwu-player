@@ -15,7 +15,7 @@
   <div class="abg"></div>
   <div id="app">
     <header class="flex-center">
-      <h1>UwU Player</h1>
+      <h1 @click="toggleFullScreen" style="cursor: pointer;" title="点击进入全屏">UwU Player</h1>
       <div class="flex-center">
         <span>当前一共 {{ songList.length}} 首歌曲</span>
         <div style="margin-left: 15px;">
@@ -74,7 +74,37 @@
 
     <Immersive v-if="immersiveMode">
       <div class="abg"></div>
-      <button class="btn exit-btn" @click="toggleImmersiveMode">退出</button>
+      <header>
+        <div class="left">
+          <h1 class="ml-10" style="cursor: pointer;">
+            <span class="mr-10" title="退出全屏" @click="toggleFullScreen">UwU</span>
+            <span title="退出沉浸模式" @click="toggleImmersiveMode">Player</span>
+          </h1>
+        </div>
+        <div>
+          {{ time }}
+        </div>
+        <div class="right">
+
+          <div v-if="batterySupported" class="battery-container mr-10">
+            <svg v-if="battery.charging" t="1745091644748" class="charging" viewBox="0 0 1024 1024" version="1.1"
+              xmlns="http://www.w3.org/2000/svg" p-id="4570" width="20" height="20">
+              <path
+                d="M395.765333 586.570667h-171.733333c-22.421333 0-37.888-22.442667-29.909333-43.381334L364.768 95.274667A32 32 0 0 1 394.666667 74.666667h287.957333c22.72 0 38.208 23.018667 29.632 44.064l-99.36 243.882666h187.050667c27.509333 0 42.186667 32.426667 24.042666 53.098667l-458.602666 522.56c-22.293333 25.408-63.626667 3.392-54.976-29.28l85.354666-322.421333zM416.714667 138.666667L270.453333 522.581333h166.869334a32 32 0 0 1 30.933333 40.181334l-61.130667 230.954666 322.176-367.114666H565.312c-22.72 0-38.208-23.018667-29.632-44.064l99.36-243.882667H416.714667z"
+                p-id="4571"></path>
+            </svg>
+            <div class="battery">
+              <div class="power"></div>
+            </div>
+
+            <small>
+              {{(battery.level * 100).toFixed(0)}}%
+            </small>
+          </div>
+
+        </div>
+      </header>
+
       <div class="left">
         <img :src="pic" :title="curPlay.name">
       </div>
@@ -172,6 +202,17 @@
           duration: 0,
           progress: 0,
           isPlaying: false,
+
+          battery: {
+            level: 0,       // 电量百分比 (0-1)
+            charging: false,
+            chargingTime: 0, // 充满剩余时间（秒）
+            dischargingTime: 0, // 耗尽剩余时间（秒）
+          },
+          batterySupported: true, // 浏览器是否支持 Battery API
+
+          timer: null,
+          time: null,
         };
       },
       watch: {
@@ -352,13 +393,6 @@
         },
 
         async getMusicPic() {
-          // DEBUG
-          bg = this.pic = './css/bg.webp';
-          this.getBgColor(bg)
-          document.documentElement.style.setProperty('--bg', `url(${bg})`);
-          document.documentElement.style.setProperty('--bg-filter', 'blur(20px)');
-          document.documentElement.style.setProperty('--bg-scale', '1.4');
-          return;
           try {
             const { data: d } = await axios.get(QM_URL, {
               params: {
@@ -405,6 +439,14 @@
           this.getBgColor(BG)
         },
 
+        toggleFullScreen() {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+        },
+
         toggleImmersiveMode() {
           this.immersiveMode = !this.immersiveMode
         },
@@ -442,7 +484,49 @@
           };
           img.crossOrigin = 'Anonymous';
           img.src = imgLink
-        }
+        },
+
+        async initBatteryMonitor() {
+          if (!navigator.getBattery) {
+            this.batterySupported = false;
+            return;
+          }
+
+          try {
+            const battery = await navigator.getBattery();
+            this.updateBatteryStatus(battery); // 初始状态
+
+            // 监听电池状态变化
+            battery.addEventListener('levelchange', () => this.updateBatteryStatus(battery));
+            battery.addEventListener('chargingchange', () => this.updateBatteryStatus(battery));
+            battery.addEventListener('chargingtimechange', () => this.updateBatteryStatus(battery));
+            battery.addEventListener('dischargingtimechange', () => this.updateBatteryStatus(battery));
+          } catch (error) {
+            console.error('获取电池状态失败:', error);
+            this.batterySupported = false;
+          }
+        },
+        updateBatteryStatus(battery) {
+
+          const { level, charging, chargingTime, dischargingTime } = battery
+          // 设置电池颜色样式
+          if (level <= 0.2) {
+            document.documentElement.style.setProperty('--battery-color', "#ff4757");
+          } else if (level <= 0.5) {
+            document.documentElement.style.setProperty('--battery-color', "#ffa502");
+          } else {
+            document.documentElement.style.setProperty('--battery-color', "#00cb00");
+          }
+          // 设置电量显示宽度
+          document.documentElement.style.setProperty('--battery-level', level * 100 + '%');
+
+          this.battery = {
+            level,
+            charging,
+            chargingTime,
+            dischargingTime,
+          };
+        },
       },
       async mounted() {
         document.documentElement.style.setProperty('--bg', `url(${BG})`);
@@ -487,15 +571,12 @@
           this.progress = (this.currentTime / this.duration) * 100;
         });
 
-        // this.playSong({
-        //   "name": "天知河",
-        //   "artist": "说说Crystal",
-        //   "type": "flac",
-        //   "fullName": "说说Crystal - 天知河"
-        // }).then(() => {
-        //   this.$refs.audioPlayer.pause();
-        //   this.isPlaying = false
-        // })
+        this.initBatteryMonitor()
+
+        this.timer = setInterval(() => {
+          const now = new Date()
+          this.time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+        }, 1000)
       }
     });
 
