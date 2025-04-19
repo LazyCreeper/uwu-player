@@ -79,7 +79,7 @@
         <img :src="pic" :title="curPlay.name">
       </div>
       <div class="right">
-        <p class="title" @click="getBgColor" title="点击更改歌词颜色 :)">{{curPlay.fullName}}</p>
+        <p class="title" @click="getBgColor" title="点击更改歌词颜色 :)">{{curPlay.fullName ?? '暂无歌曲播放 :)'}}</p>
         <div v-if="currentLyrics.length" class="lyrics">
           <div v-for="(lyric, index) in currentLyrics" :key="index" class="lrc"
             :class="{'lrc-highlight':currentLyricIndex === index}">
@@ -184,13 +184,16 @@
           handler(value) {
             localStorage.setItem('autoNext', value)
           },
-        }
+        },
       },
       methods: {
         async playSong(song) {
           this.currentLyrics = []
+          this.currentTime = this.duration = this.progress = 0
           this.$refs.audioPlayer.src = `/mp3/${encodeURIComponent(`${song.fullName}.${song.type}`)}`;
+          this.isPlaying = true
           this.curPlay = song;
+
           document.title = song.fullName;
 
           this.$nextTick(() => {
@@ -228,6 +231,7 @@
         },
 
         togglePlay() {
+          if (!this.$refs.audioPlayer.src) return this.playSong(this.songList[0]);
           if (this.$refs.audioPlayer.paused) {
             this.$refs.audioPlayer.play();
             this.isPlaying = true
@@ -309,12 +313,16 @@
           return lyrics;
         },
 
+        prevSong() {
+          const prevIndex = this.songList.findIndex((i) => i.name === this.curPlay.name);
+          const prevSong = this.songList[prevIndex - 1];
+          this.playSong(prevSong);
+        },
+
         nextSong(force = false) {
-          this.currentTime = this.duration = this.progress = 0
           if (this.isRandom) return this.playRandomSong()
           if (typeof force !== 'boolean') force = false
           if (!this.autoNext && !force) return;
-          this.currentLyrics = []
           const nextIndex = this.songList.findIndex((i) => i.name === this.curPlay.name);
           const nextSong = this.songList[nextIndex + 1];
           this.playSong(nextSong);
@@ -456,15 +464,17 @@
 
           navigator.mediaSession.setActionHandler('play', () => {
             this.$refs.audioPlayer.play();
+            this.isPlaying = true
           });
 
           navigator.mediaSession.setActionHandler('pause', () => {
             this.$refs.audioPlayer.pause();
+            this.isPlaying = false
           });
 
-          // navigator.mediaSession.setActionHandler('previoustrack', () => {
-          //   // TODO: 上一首
-          // });
+          navigator.mediaSession.setActionHandler('previoustrack', () => {
+            this.prevSong();
+          });
 
           navigator.mediaSession.setActionHandler('nexttrack', () => {
             this.nextSong(true);
@@ -477,14 +487,15 @@
           this.progress = (this.currentTime / this.duration) * 100;
         });
 
-        this.playSong({
-          "name": "天知河",
-          "artist": "说说Crystal",
-          "type": "flac",
-          "fullName": "说说Crystal - 天知河"
-        }).then(() => {
-          this.$refs.audioPlayer.pause()
-        })
+        // this.playSong({
+        //   "name": "天知河",
+        //   "artist": "说说Crystal",
+        //   "type": "flac",
+        //   "fullName": "说说Crystal - 天知河"
+        // }).then(() => {
+        //   this.$refs.audioPlayer.pause();
+        //   this.isPlaying = false
+        // })
       }
     });
 
