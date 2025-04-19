@@ -1,5 +1,4 @@
 :root {
-  --bg: url('./120854122_p0.jpg');
   /* --bg: url('https://api.imlazy.ink/img'); */
   /* --bg: url('https://s1.imlazy.ink:233/img/background/104923272_p0.jpg'); */
 }
@@ -157,6 +156,10 @@ tag {
   overflow: hidden;
 }
 
+.lrc:first-child {
+  padding-top: 15svh;
+}
+
 .lrc:last-child {
   padding-bottom: 50svh;
 }
@@ -262,6 +265,7 @@ Immersive {
       font-weight: 300;
       font-size: 2rem;
       line-height: 2rem;
+      color: var(--second-color, '#fff');
     }
 
     .lyrics {
@@ -271,22 +275,20 @@ Immersive {
       width: 50svw;
       line-height: 2.5rem;
       scrollbar-width: none;
+      color: var(--second-color, '#fff');
 
       .lrc {
         font-size: inherit;
         line-height: inherit;
       }
 
-      .lrc:first-child {
-        padding-top: 15svh;
-      }
-
       .lrc-highlight {
-        color: #fff;
+        color: inherit;
         background: unset;
         text-shadow: unset;
         font-size: inherit;
         line-height: inherit;
+        filter: contrast(1.5);
       }
     }
 
