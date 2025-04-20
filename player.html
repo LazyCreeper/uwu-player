@@ -106,7 +106,7 @@
         </header>
 
         <div class="left">
-          <transition name="slide-x" mode="out-in">
+          <transition name="slide-x" mode="out-in" @after-enter="scrollToCurPlay">
             <div v-if="immersive.showSongList" class="songList">
               <ul>
                 <li v-for="song in songList" :key="song.fullName"
@@ -125,9 +125,9 @@
                   </div>
                 </li>
               </ul>
-              <button class="btn btn-transparent" @click="()=>{immersive.showSongList = false}">关闭</button>
+              <button class="btn btn-transparent" @click="toggleSongList">关闭</button>
             </div>
-            <img v-else :src="pic" :title="curPlay.name" @click="()=>{immersive.showSongList = true}">
+            <img v-else :src="pic" :title="curPlay.name" @click="toggleSongList">
           </transition>
 
         </div>
@@ -204,6 +204,7 @@
     const BG = 'https://api.imlazy.ink/img/';
     // const BG = './css/120854122_p0.jpg';
     const QM_URL = 'https://s1.imlazy.ink:233/qm/soso/fcgi-bin/client_search_cp';
+    const COVER_URL = 'https://s1.imlazy.ink:233/qm_cover';
 
     const app = Vue.createApp({
       components: {
@@ -265,12 +266,7 @@
           document.title = song.fullName;
 
           this.$nextTick(() => {
-            const curPlayElements = document.querySelectorAll('.cur-p-highlight');
-            if (curPlayElements) {
-              curPlayElements.forEach((ele) => {
-                ele.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              });
-            }
+            this.scrollToCurPlay()
           });
 
           this.getMusicPic().then(() => this.updateNotificationIcon(song))
@@ -404,6 +400,15 @@
           this.playSong(randomSong);
         },
 
+        scrollToCurPlay() {
+          const curPlayElements = document.querySelectorAll('.cur-p-highlight');
+          if (curPlayElements) {
+            curPlayElements.forEach((ele) => {
+              ele.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+          }
+        },
+
         copyLink(song) {
           const songLink = `${window.location.origin}${window.location.pathname}?s=${encodeURIComponent(song.fullName)}`;
           navigator.clipboard.writeText(songLink).then(() => {
@@ -446,7 +451,7 @@
 
               if (!a || !a.albummid) return this.resetBg()
 
-              bg = this.pic = `http://y.gtimg.cn/music/photo_new/T002R300x300M000${a.albummid}_1.jpg`;
+              bg = this.pic = `${COVER_URL}/music/photo_new/T002R300x300M000${a.albummid}_1.jpg`;
               this.getBgColor(bg)
               document.documentElement.style.setProperty('--bg', `url(${bg})`);
               document.documentElement.style.setProperty('--bg-filter', 'blur(20px)');
@@ -478,6 +483,10 @@
 
         toggleImmersiveMode() {
           this.immersive.show = !this.immersive.show
+        },
+
+        toggleSongList() {
+          this.immersive.showSongList = !this.immersive.showSongList
         },
 
         formatTime(time) {
@@ -602,7 +611,6 @@
         });
 
         this.initBatteryMonitor()
-
         this.timer = setInterval(() => {
           const now = new Date()
           this.time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
