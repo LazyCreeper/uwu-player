@@ -449,3 +449,21 @@ Immersive {
     }
   }
 }
+
+.slide-down-enter-active {
+  animation: slideDown 0.5s ease-out;
+}
+
+.slide-down-leave-active {
+  animation: slideDown 0.5s ease-out reverse;
+}
+
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
