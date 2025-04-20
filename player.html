@@ -82,7 +82,7 @@
               <span title="退出沉浸模式" @click="toggleImmersiveMode">Player</span>
             </h1>
           </div>
-          <div>
+          <div style="position: absolute;width: inherit;text-align: center;">
             {{ time }}
           </div>
           <div class="right">
@@ -543,7 +543,7 @@
             document.documentElement.style.setProperty('--battery-color', "#00cb00");
           } else if (level <= 0.2) {
             document.documentElement.style.setProperty('--battery-color', "#ff4757");
-          } else if (level <= 0.5) {
+          } else if (level <= 0.4) {
             document.documentElement.style.setProperty('--battery-color', "#ffa502");
           } else {
             document.documentElement.style.setProperty('--battery-color', "#b0b0b0");
