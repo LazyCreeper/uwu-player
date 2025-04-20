@@ -201,8 +201,8 @@
   <script>
     const TITLE = 'UwU Player';
 
-    // const BG = 'https://api.imlazy.ink/img/';
-    const BG = './css/120854122_p0.jpg';
+    const BG = 'https://api.imlazy.ink/img/';
+    // const BG = './css/120854122_p0.jpg';
     const QM_URL = 'https://s1.imlazy.ink:233/qm/soso/fcgi-bin/client_search_cp';
 
     const app = Vue.createApp({
@@ -317,7 +317,7 @@
             name: '',
             artist: ''
           }
-          this.currentTime = this.duration = this.progress = 0
+          this.currentTime = this.duration = this.progress = 0;
           this.currentLyrics = []
           this.resetBg()
           document.title = TITLE
