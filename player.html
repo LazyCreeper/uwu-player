@@ -73,12 +73,12 @@
     <audio ref="audioPlayer" controls autoplay @ended="nextSong"></audio>
 
     <transition name="slide-down" appear>
-      <Immersive v-if="immersiveMode">
+      <Immersive v-if="immersive.show">
         <div class="abg"></div>
         <header>
           <div class="left">
             <h1 class="ml-10" style="cursor: pointer;">
-              <span class="mr-10" title="退出全屏" @click="toggleFullScreen">UwU</span>
+              <span class="mr-10" title="切换全屏" @click="toggleFullScreen">UwU</span>
               <span title="退出沉浸模式" @click="toggleImmersiveMode">Player</span>
             </h1>
           </div>
@@ -86,7 +86,6 @@
             {{ time }}
           </div>
           <div class="right">
-
             <div v-if="batterySupported" class="battery-container mr-10">
               <svg v-if="battery.charging" t="1745091644748" class="charging" viewBox="0 0 1024 1024" version="1.1"
                 xmlns="http://www.w3.org/2000/svg" p-id="4570" width="20" height="20">
@@ -102,12 +101,34 @@
                 {{(battery.level * 100).toFixed(0)}}%
               </small>
             </div>
-
           </div>
         </header>
 
         <div class="left">
-          <img :src="pic" :title="curPlay.name">
+          <transition name="slide-x" mode="out-in">
+            <div v-if="immersive.showSongList" class="songList">
+              <ul>
+                <li v-for="song in songList" :key="song.fullName"
+                  :class="{'cur-p-highlight': curPlay.fullName === song.fullName}">
+                  <div class="flex-center">
+                    <span>{{ song.artist }} - {{ song.name }}</span>
+                    <div class="flex-center" style="min-width: max-content">
+                      <tag :class="{'tag-gray' : song.type === 'mp3'}">{{
+                        song.type
+                        }}</tag>
+                      <button title="分享链接" class="mx-10" @click="copyLink(song)">🔗</button>
+
+                      <button :disabled="curPlay.fullName === song.fullName" class="btn" @click="playSong(song)">播放
+                        ▶️</button>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+              <button class="btn btn-transparent" @click="()=>{immersive.showSongList = false}">关闭</button>
+            </div>
+            <img v-else :src="pic" :title="curPlay.name" @click="()=>{immersive.showSongList = true}">
+          </transition>
+
         </div>
         <div class="right">
           <p class="title" @click="getBgColor" title="点击更改歌词颜色 :)">{{curPlay.fullName ?? '暂无歌曲播放 :)'}}</p>
@@ -199,7 +220,10 @@
           currentLyricIndex: -1,
           isRandom: false,
           autoNext: true,
-          immersiveMode: false,
+          immersive: {
+            show: false,
+            showSongList: false
+          },
           currentTime: 0,
           duration: 0,
           progress: 0,
@@ -240,9 +264,11 @@
           document.title = song.fullName;
 
           this.$nextTick(() => {
-            const curPlayEle = document.querySelector('.cur-p-highlight');
-            if (curPlayEle) {
-              curPlayEle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const curPlayElements = document.querySelectorAll('.cur-p-highlight');
+            if (curPlayElements) {
+              curPlayElements.forEach((ele) => {
+                ele.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              });
             }
           });
 
@@ -450,7 +476,7 @@
         },
 
         toggleImmersiveMode() {
-          this.immersiveMode = !this.immersiveMode
+          this.immersive.show = !this.immersive.show
         },
 
         formatTime(time) {

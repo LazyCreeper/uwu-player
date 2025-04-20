@@ -145,6 +145,10 @@ tag {
   background: #d29230;
 }
 
+.btn-transparent {
+  background: rgba(255, 255, 255, .3);
+}
+
 .btn[disabled] {
   cursor: not-allowed;
   filter: contrast(0.5);
@@ -287,12 +291,34 @@ Immersive {
 
   .left {
     text-align: center;
+    max-width: 30svw;
 
     img {
       border-radius: 1rem;
       width: 300px;
       box-shadow: 0 0 10px var(--main-color, '#0000');
       user-select: none;
+    }
+
+    .songList {
+      ul {
+        overflow-y: auto;
+        height: 50svh;
+        scrollbar-width: none;
+
+        li {
+          margin: 8px 0;
+          list-style: decimal-leading-zero;
+
+          span {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+
+
     }
   }
 
@@ -361,7 +387,6 @@ Immersive {
       justify-content: space-between;
       font-size: 12px;
       opacity: 0.5;
-      margin-top: 5px;
     }
 
     .control-buttons {
@@ -466,4 +491,19 @@ Immersive {
   100% {
     transform: translateY(0);
   }
+}
+
+.slide-x-enter-active,
+.slide-x-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.slide-x-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.slide-x-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
