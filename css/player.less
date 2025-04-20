@@ -506,3 +506,70 @@ Immersive {
   opacity: 0;
   transform: translateX(-30px);
 }
+
+@media screen and (max-width: 900px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  main {
+    .right {
+      .cur-s-name {
+        img {
+          display: none;
+        }
+      }
+
+      .lyrics {
+        height: calc(100svh - 200px);
+      }
+    }
+  }
+
+  Immersive {
+    .left {
+      max-width: 40svw;
+
+      img {
+        width: 28svw;
+      }
+
+      .songList {
+        ul {
+          height: 80svh;
+        }
+
+        tag {
+          padding: 1px 2px;
+        }
+
+        button[title="分享链接"] {
+          margin: 0 5px;
+        }
+
+        .btn {
+          padding: 1px 6px;
+        }
+      }
+    }
+
+    .right {
+      max-width: 50svw;
+      min-width: 45svw;
+
+      .title {
+        font-weight: 600;
+      }
+
+      .lyrics,
+      .title {
+        font-size: 1.5rem;
+        line-height: 2rem;
+      }
+
+      .lrc-highlight {
+        padding: 0.2rem 0;
+      }
+    }
+  }
+}

@@ -475,7 +475,16 @@
 
         toggleFullScreen() {
           if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+            document.documentElement.requestFullscreen().then(() => {
+              if (window.innerWidth < 680) {
+                var orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+
+                if (orientation) {
+                  orientation.lock('landscape').catch(_ => { });
+                }
+              }
+            })
+
           } else {
             document.exitFullscreen();
           }
@@ -483,6 +492,10 @@
 
         toggleImmersiveMode() {
           this.immersive.show = !this.immersive.show
+          var orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+          if (orientation && this.immersive.show) {
+            orientation.lock('landscape').catch(_ => { });
+          }
         },
 
         toggleSongList() {
