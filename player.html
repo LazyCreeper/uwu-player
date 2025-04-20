@@ -86,7 +86,7 @@
             {{ time }}
           </div>
           <div class="right">
-            <div v-if="batterySupported" class="battery-container mr-10">
+            <div class="battery-container mr-10">
               <svg v-if="battery.charging" t="1745091644748" class="charging" viewBox="0 0 1024 1024" version="1.1"
                 xmlns="http://www.w3.org/2000/svg" p-id="4570" width="20" height="20">
                 <path
@@ -101,6 +101,7 @@
                 {{(battery.level * 100).toFixed(0)}}%
               </small>
             </div>
+
           </div>
         </header>
 
@@ -560,7 +561,6 @@
       },
       async mounted() {
         document.documentElement.style.setProperty('--bg', `url(${BG})`);
-        this.getBgColor(BG)
         await this.fetchSongList();
         this.checkShare();
         this.isRandom = localStorage.getItem('isRandom') === 'true'
